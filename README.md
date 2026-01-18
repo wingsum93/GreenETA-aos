@@ -1,5 +1,5 @@
-# ???
-??? is a conventent app that help user to find the last hospital with current waiting time for different categories injuries.
+# GreenETA
+GreenETA is a convenient app that help user to find the last hospital with current waiting time for different categories injuries.
 
 ## Tech stack
 - MVVM architecture
