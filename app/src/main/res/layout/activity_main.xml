@@ -7,6 +7,17 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <TextView
+        android:id="@+id/hospital_updated"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:textAppearance="?attr/textAppearanceBodySmall"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Updated: 20/1/2026 4:30AM" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/hospital_list"
         android:layout_width="0dp"
@@ -16,8 +27,8 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:listitem="@layout/support_simple_spinner_dropdown_item" />
+        app:layout_constraintTop_toBottomOf="@id/hospital_updated"
+        tools:listitem="@layout/item_hospital" />
 
     <TextView
         android:id="@+id/hospital_empty"
