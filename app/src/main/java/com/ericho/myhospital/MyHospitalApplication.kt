@@ -10,6 +10,7 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
 import org.koin.dsl.module
+import org.koin.dsl.onClose
 
 class MyHospitalApplication : Application() {
     override fun onCreate() {
@@ -32,7 +33,7 @@ private val appModule = module {
     single {
         HttpClientProvider.create()
     } onClose {
-        it.close()
+        it?.close()
     }
     viewModel { HospitalWaitTimeViewModel(get(), get()) }
 }
