@@ -3,6 +3,7 @@ import com.github.javaparser.JavaParserBuild.JAVA_VERSION
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.compose)
 }
 
 android {
