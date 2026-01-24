@@ -4,13 +4,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ericho.myhospital.data.HospitalPayload
 import com.ericho.myhospital.data.LocalRepository
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import org.json.JSONObject
-import java.net.URL
 
 data class HospitalWaitTimeUiState(
     val isLoading: Boolean,
@@ -21,6 +23,7 @@ data class HospitalWaitTimeUiState(
 
 class HospitalWaitTimeViewModel(
     private val localRepository: LocalRepository,
+    private val httpClient: HttpClient,
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(
         HospitalWaitTimeUiState(
@@ -42,7 +45,9 @@ class HospitalWaitTimeViewModel(
             val result = runCatching {
                 val cachedJson = localRepository.loadHospitalWaitTimeJson()
                 val jsonText = cachedJson
-                    ?: URL("https://www.ha.org.hk/opendata/aed/aedwtdata2-en.json").readText()
+                    ?: httpClient
+                        .get("https://www.ha.org.hk/opendata/aed/aedwtdata2-en.json")
+                        .bodyAsText()
                 if (cachedJson == null) {
                     localRepository.cacheHospitalWaitTimeJson(jsonText)
                 }
