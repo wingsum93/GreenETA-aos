@@ -3,6 +3,7 @@ package com.ericho.myhospital
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ericho.myhospital.data.HospitalPayload
+import com.ericho.myhospital.data.LocalRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +19,9 @@ data class HospitalWaitTimeUiState(
     val hospitals: List<HospitalWaitTime>,
 )
 
-class HospitalWaitTimeViewModel : ViewModel() {
+class HospitalWaitTimeViewModel(
+    private val localRepository: LocalRepository,
+) : ViewModel() {
     private val _uiState = MutableStateFlow(
         HospitalWaitTimeUiState(
             isLoading = true,
@@ -37,8 +40,12 @@ class HospitalWaitTimeViewModel : ViewModel() {
         _uiState.value = _uiState.value.copy(isLoading = true, isEmpty = false)
         viewModelScope.launch(Dispatchers.IO) {
             val result = runCatching {
-                val jsonText =
-                    URL("https://www.ha.org.hk/opendata/aed/aedwtdata2-en.json").readText()
+                val cachedJson = localRepository.loadHospitalWaitTimeJson()
+                val jsonText = cachedJson
+                    ?: URL("https://www.ha.org.hk/opendata/aed/aedwtdata2-en.json").readText()
+                if (cachedJson == null) {
+                    localRepository.cacheHospitalWaitTimeJson(jsonText)
+                }
                 parseHospitals(jsonText)
             }
             _uiState.value = result.fold(
@@ -85,4 +92,5 @@ class HospitalWaitTimeViewModel : ViewModel() {
         }
         return HospitalPayload(updateTime, hospitals)
     }
+
 }
