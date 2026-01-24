@@ -13,8 +13,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.activity.viewModels
 import kotlinx.coroutines.launch
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : AppCompatActivity() {
     private lateinit var hospitalList: RecyclerView
@@ -22,7 +22,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var loadingState: ProgressBar
     private lateinit var updatedText: TextView
     private val adapter = HospitalWaitTimeAdapter()
-    private val viewModel: HospitalWaitTimeViewModel by viewModels()
+    private val viewModel: HospitalWaitTimeViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
