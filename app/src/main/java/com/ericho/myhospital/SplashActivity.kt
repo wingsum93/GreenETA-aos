@@ -37,7 +37,7 @@ class SplashActivity : ComponentActivity() {
 @Composable
 private fun SplashScreen(onTimeout: () -> Unit) {
     val composition = rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.splash_animation)
+        LottieCompositionSpec.RawRes(R.raw.loading_spot)
     )
 
     LaunchedEffect(Unit) {
