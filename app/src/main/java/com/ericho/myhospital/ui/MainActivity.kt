@@ -22,16 +22,25 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -43,6 +52,10 @@ import com.ericho.myhospital.model.HospitalWaitTime
 import com.ericho.myhospital.viewmodel.HospitalWaitTimeUiState
 import com.ericho.myhospital.viewmodel.HospitalWaitTimeViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import android.content.Intent
+import android.net.Uri
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 
 class MainActivity : ComponentActivity() {
     private val viewModel: HospitalWaitTimeViewModel by viewModel()
@@ -52,7 +65,43 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-            HomeScreen(uiState = uiState)
+            MainTabs(uiState = uiState)
+        }
+    }
+}
+
+@Composable
+private fun MainTabs(uiState: HospitalWaitTimeUiState) {
+    var selectedTabIndex by remember { mutableIntStateOf(0) }
+    val tabs = listOf("Hospitals", "Settings")
+    MaterialTheme {
+        Surface(color = MaterialTheme.colorScheme.background) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(WindowInsets.systemBars.asPaddingValues())
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    when (selectedTabIndex) {
+                        0 -> HomeScreen(uiState = uiState)
+                        1 -> SettingsScreen()
+                    }
+                }
+                NavigationBar {
+                    NavigationBarItem(
+                        selected = selectedTabIndex == 0,
+                        onClick = { selectedTabIndex = 0 },
+                        icon = { androidx.compose.material3.Icon(imageVector = Icons.Filled.List, contentDescription = "Hospitals") },
+                        label = { Text(text = tabs[0]) },
+                    )
+                    NavigationBarItem(
+                        selected = selectedTabIndex == 1,
+                        onClick = { selectedTabIndex = 1 },
+                        icon = { androidx.compose.material3.Icon(imageVector = Icons.Filled.Settings, contentDescription = "Settings") },
+                        label = { Text(text = tabs[1]) },
+                    )
+                }
+            }
         }
     }
 }
@@ -66,23 +115,19 @@ private fun HomeScreen(uiState: HospitalWaitTimeUiState) {
             .map { it.name }
             .toSet()
     }
-    MaterialTheme {
-        Surface(color = MaterialTheme.colorScheme.background) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(WindowInsets.systemBars.asPaddingValues())
-            ) {
-                when {
-                    uiState.isLoading -> LoadingState()
-                    uiState.isEmpty -> EmptyState()
-                    else -> HospitalList(
-                        updatedTime = uiState.updatedTime,
-                        hospitals = uiState.hospitals,
-                        topHospitals = topHospitals,
-                    )
-                }
-            }
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 0.dp)
+    ) {
+        when {
+            uiState.isLoading -> LoadingState()
+            uiState.isEmpty -> EmptyState()
+            else -> HospitalList(
+                updatedTime = uiState.updatedTime,
+                hospitals = uiState.hospitals,
+                topHospitals = topHospitals,
+            )
         }
     }
 }
@@ -179,3 +224,115 @@ private fun HospitalCard(hospital: HospitalWaitTime, isTop: Boolean) {
         }
     }
 }
+
+@Composable
+private fun SettingsScreen() {
+    val context = LocalContext.current
+    val currentTag = AppCompatDelegate.getApplicationLocales().get(0)?.toLanguageTag()
+    val languageOptions = listOf(
+        LanguageOption(label = "English", tag = "en"),
+        LanguageOption(label = "Traditional Chinese", tag = "zh-Hant"),
+        LanguageOption(label = "Simplified Chinese", tag = "zh-Hans"),
+    )
+    val libraries = listOf(
+        LibraryLink("AndroidX Core", "https://github.com/androidx/androidx"),
+        LibraryLink("AppCompat", "https://github.com/androidx/androidx"),
+        LibraryLink("Material Components", "https://github.com/material-components/material-components-android"),
+        LibraryLink("Activity", "https://github.com/androidx/androidx"),
+        LibraryLink("ConstraintLayout", "https://github.com/androidx/constraintlayout"),
+        LibraryLink("Jetpack Compose", "https://github.com/androidx/androidx"),
+        LibraryLink("Lifecycle", "https://github.com/androidx/androidx"),
+        LibraryLink("Koin", "https://github.com/InsertKoinIO/koin"),
+        LibraryLink("Ktor", "https://github.com/ktorio/ktor"),
+        LibraryLink("Lottie Compose", "https://github.com/airbnb/lottie-android"),
+        LibraryLink("Room", "https://github.com/androidx/androidx"),
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+    ) {
+        Text(
+            text = "Language",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
+        languageOptions.forEach { option ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        AppCompatDelegate.setApplicationLocales(
+                            LocaleListCompat.forLanguageTags(option.tag)
+                        )
+                    }
+                    .padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                RadioButton(
+                    selected = currentTag == option.tag,
+                    onClick = {
+                        AppCompatDelegate.setApplicationLocales(
+                            LocaleListCompat.forLanguageTags(option.tag)
+                        )
+                    }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = option.label)
+            }
+        }
+
+        Spacer(modifier = Modifier.size(24.dp))
+        Text(
+            text = "Support",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
+        Text(
+            text = "Report a bug",
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable {
+                    val intent = Intent(Intent.ACTION_SENDTO).apply {
+                        data = Uri.parse("mailto:dev@example.com")
+                        putExtra(Intent.EXTRA_SUBJECT, "Bug report")
+                    }
+                    val chooser = Intent.createChooser(intent, "Report a bug")
+                    context.startActivity(chooser)
+                }
+                .padding(vertical = 8.dp),
+        )
+
+        Spacer(modifier = Modifier.size(24.dp))
+        Text(
+            text = "Open source libraries",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(bottom = 8.dp),
+        )
+        libraries.forEach { lib ->
+            Text(
+                text = lib.name,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable {
+                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(lib.url))
+                        context.startActivity(intent)
+                    }
+                    .padding(vertical = 6.dp),
+            )
+        }
+    }
+}
+
+private data class LanguageOption(
+    val label: String,
+    val tag: String,
+)
+
+private data class LibraryLink(
+    val name: String,
+    val url: String,
+)
