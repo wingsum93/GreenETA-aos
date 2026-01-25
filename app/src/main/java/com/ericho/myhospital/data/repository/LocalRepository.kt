@@ -1,4 +1,4 @@
-package com.ericho.myhospital.data
+package com.ericho.myhospital.data.repository
 
 interface LocalRepository {
     suspend fun loadHospitalWaitTimeJson(): String?

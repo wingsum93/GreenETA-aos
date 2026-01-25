@@ -1,6 +1,4 @@
-package com.ericho.myhospital.data
-
-import com.ericho.myhospital.HospitalWaitTime
+package com.ericho.myhospital.model
 
 data class HospitalPayload(
     val updatedTime: String,

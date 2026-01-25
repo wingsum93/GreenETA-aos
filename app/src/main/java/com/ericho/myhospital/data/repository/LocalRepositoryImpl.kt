@@ -1,4 +1,6 @@
-package com.ericho.myhospital.data
+package com.ericho.myhospital.data.repository
+
+import com.ericho.myhospital.data.source.local.LocalDataSource
 
 class LocalRepositoryImpl(
     private val localDataSource: LocalDataSource,

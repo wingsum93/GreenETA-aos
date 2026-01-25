@@ -1,10 +1,11 @@
-package com.ericho.myhospital
+package com.ericho.myhospital.app
 
 import android.app.Application
-import com.ericho.myhospital.data.LocalDataSource
-import com.ericho.myhospital.data.LocalRepository
-import com.ericho.myhospital.data.LocalRepositoryImpl
-import com.ericho.myhospital.data.remote.HttpClientProvider
+import com.ericho.myhospital.data.repository.LocalRepository
+import com.ericho.myhospital.data.repository.LocalRepositoryImpl
+import com.ericho.myhospital.data.source.local.LocalDataSource
+import com.ericho.myhospital.data.source.remote.HttpClientProvider
+import com.ericho.myhospital.viewmodel.HospitalWaitTimeViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin

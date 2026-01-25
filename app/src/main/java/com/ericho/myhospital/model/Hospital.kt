@@ -1,4 +1,4 @@
-package com.ericho.myhospital.data
+package com.ericho.myhospital.model
 
 data class Hospital(
     val nameEn: String,

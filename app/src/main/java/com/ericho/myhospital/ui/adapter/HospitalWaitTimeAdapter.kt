@@ -1,10 +1,12 @@
-package com.ericho.myhospital
+package com.ericho.myhospital.ui.adapter
 
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.ericho.myhospital.R
+import com.ericho.myhospital.model.HospitalWaitTime
 
 class HospitalWaitTimeAdapter(
     private var items: List<HospitalWaitTime> = emptyList(),

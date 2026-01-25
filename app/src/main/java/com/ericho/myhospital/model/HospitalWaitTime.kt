@@ -1,4 +1,4 @@
-package com.ericho.myhospital
+package com.ericho.myhospital.model
 
 data class HospitalWaitTime(
     val name: String,

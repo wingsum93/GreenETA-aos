@@ -1,9 +1,10 @@
-package com.ericho.myhospital
+package com.ericho.myhospital.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ericho.myhospital.data.HospitalPayload
-import com.ericho.myhospital.data.LocalRepository
+import com.ericho.myhospital.data.repository.LocalRepository
+import com.ericho.myhospital.model.HospitalPayload
+import com.ericho.myhospital.model.HospitalWaitTime
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText

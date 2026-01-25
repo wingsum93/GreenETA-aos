@@ -1,6 +1,7 @@
-package com.ericho.myhospital.data
+package com.ericho.myhospital.data.source.asset
 
 import android.content.Context
+import com.ericho.myhospital.model.Hospital
 import org.json.JSONObject
 
 object HospitalGeoJsonDataSource {

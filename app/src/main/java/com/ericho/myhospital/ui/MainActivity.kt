@@ -1,4 +1,4 @@
-package com.ericho.myhospital
+package com.ericho.myhospital.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -38,6 +38,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.ericho.myhospital.R
+import com.ericho.myhospital.model.HospitalWaitTime
+import com.ericho.myhospital.viewmodel.HospitalWaitTimeUiState
+import com.ericho.myhospital.viewmodel.HospitalWaitTimeViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class MainActivity : ComponentActivity() {

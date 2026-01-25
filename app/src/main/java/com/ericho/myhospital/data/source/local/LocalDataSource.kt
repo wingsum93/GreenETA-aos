@@ -1,4 +1,4 @@
-package com.ericho.myhospital.data
+package com.ericho.myhospital.data.source.local
 
 import android.content.Context
 import kotlinx.coroutines.Dispatchers

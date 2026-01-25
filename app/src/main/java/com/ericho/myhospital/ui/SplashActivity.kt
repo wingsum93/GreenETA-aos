@@ -1,4 +1,4 @@
-package com.ericho.myhospital
+package com.ericho.myhospital.ui
 
 import android.content.Intent
 import android.os.Bundle
@@ -20,6 +20,7 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.ericho.myhospital.R
 import kotlinx.coroutines.delay
 
 class SplashActivity : ComponentActivity() {
