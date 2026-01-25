@@ -5,13 +5,14 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,9 +22,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -33,10 +31,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ericho.myhospital.R
 import com.ericho.myhospital.model.HospitalWaitTime
@@ -132,12 +132,18 @@ private fun HospitalList(
 
 @Composable
 private fun HospitalCard(hospital: HospitalWaitTime, isTop: Boolean) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { /* TODO: decide post-click action */ },
+        color = Color(0xFFE0E0E0),
+        shape = RoundedCornerShape(12.dp),
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+        ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -154,22 +160,18 @@ private fun HospitalCard(hospital: HospitalWaitTime, isTop: Boolean) {
                     Text(
                         text = "Top 2",
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier
-                            .background(
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = RoundedCornerShape(999.dp)
-                            )
-                            .padding(horizontal = 10.dp, vertical = 4.dp),
+                            .background(color = Color(0xFF99CC00))
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
                     )
                 }
             }
-            Spacer(modifier = Modifier.size(8.dp))
+            Spacer(modifier = Modifier.size(4.dp))
             Text(
                 text = "Category 3: ${hospital.t3p50} (P95 ${hospital.t3p95})",
                 style = MaterialTheme.typography.bodyMedium,
             )
-            Spacer(modifier = Modifier.size(4.dp))
+            Spacer(modifier = Modifier.size(2.dp))
             Text(
                 text = "T1: ${hospital.t1wt} · T2: ${hospital.t2wt} · T4/5: ${hospital.t45p50} (P95 ${hospital.t45p95})",
                 style = MaterialTheme.typography.bodySmall,
