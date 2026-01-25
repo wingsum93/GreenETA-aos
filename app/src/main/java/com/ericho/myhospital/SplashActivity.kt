@@ -5,6 +5,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +24,7 @@ import kotlinx.coroutines.delay
 
 class SplashActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
@@ -37,7 +39,7 @@ class SplashActivity : ComponentActivity() {
 @Composable
 private fun SplashScreen(onTimeout: () -> Unit) {
     val composition = rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.loading_spot)
+        LottieCompositionSpec.RawRes(R.raw.hospital_loading)
     )
 
     LaunchedEffect(Unit) {

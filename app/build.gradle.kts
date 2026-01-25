@@ -67,6 +67,7 @@ dependencies {
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.lottie.compose)
+    implementation(libs.androidx.core.splashscreen)
 //    implementation(libs.koin.androidx.viewmodel)
     testImplementation(libs.junit)
     debugImplementation(libs.androidx.compose.ui.tooling)
