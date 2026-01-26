@@ -29,18 +29,22 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -73,7 +77,16 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun MainTabs(uiState: HospitalWaitTimeUiState) {
     var selectedTabIndex by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Hospitals", "Settings")
+    // 👇 讀一次，確保 locale/config 改變會令呢個 composable recompose
+    val configuration = LocalConfiguration.current
+
+    val tabs = remember(configuration) {
+        listOf(
+            R.string.tab_hospitals,
+            R.string.tab_settings,
+        )
+    }
+
     MaterialTheme {
         Surface(color = MaterialTheme.colorScheme.background) {
             Column(
@@ -91,14 +104,24 @@ private fun MainTabs(uiState: HospitalWaitTimeUiState) {
                     NavigationBarItem(
                         selected = selectedTabIndex == 0,
                         onClick = { selectedTabIndex = 0 },
-                        icon = { androidx.compose.material3.Icon(imageVector = Icons.Filled.List, contentDescription = "Hospitals") },
-                        label = { Text(text = tabs[0]) },
+                        icon = {
+                            androidx.compose.material3.Icon(
+                                imageVector = Icons.Filled.List,
+                                contentDescription = stringResource(tabs[0]),
+                            )
+                        },
+                        label = { Text(text = stringResource(tabs[0])) },
                     )
                     NavigationBarItem(
                         selected = selectedTabIndex == 1,
                         onClick = { selectedTabIndex = 1 },
-                        icon = { androidx.compose.material3.Icon(imageVector = Icons.Filled.Settings, contentDescription = "Settings") },
-                        label = { Text(text = tabs[1]) },
+                        icon = {
+                            androidx.compose.material3.Icon(
+                                imageVector = Icons.Filled.Settings,
+                                contentDescription = stringResource(tabs[1]),
+                            )
+                        },
+                        label = { Text(text = stringResource(tabs[1])) },
                     )
                 }
             }
@@ -228,16 +251,30 @@ private fun HospitalCard(hospital: HospitalWaitTime, isTop: Boolean) {
 @Composable
 private fun SettingsScreen() {
     val context = LocalContext.current
-    val currentTag = AppCompatDelegate.getApplicationLocales().get(0)?.toLanguageTag()
+    val prefs = remember(context) {
+        context.getSharedPreferences(PREFS_NAME, android.content.Context.MODE_PRIVATE)
+    }
+    val currentTag = prefs.getString(PREF_KEY_LANGUAGE_TAG, null)
+        ?: AppCompatDelegate.getApplicationLocales().get(0)?.toLanguageTag()
+    val normalizedTag = when (currentTag) {
+        "zh-Hant" -> "zh-TW"
+        "zh-Hans" -> "zh-CN"
+        else -> currentTag
+    }
     val languageOptions = listOf(
         LanguageOption(label = "English", tag = "en"),
-        LanguageOption(label = "Traditional Chinese", tag = "zh-Hant"),
-        LanguageOption(label = "Simplified Chinese", tag = "zh-Hans"),
+        LanguageOption(label = "Traditional Chinese", tag = "zh-TW"),
+        LanguageOption(label = "Simplified Chinese", tag = "zh-CN"),
     )
+    var showLanguageDialog by remember { mutableStateOf(false) }
+    var selectedLanguageTag by remember(normalizedTag) { mutableStateOf(normalizedTag ?: "en") }
     val libraries = listOf(
         LibraryLink("AndroidX Core", "https://github.com/androidx/androidx"),
         LibraryLink("AppCompat", "https://github.com/androidx/androidx"),
-        LibraryLink("Material Components", "https://github.com/material-components/material-components-android"),
+        LibraryLink(
+            "Material Components",
+            "https://github.com/material-components/material-components-android"
+        ),
         LibraryLink("Activity", "https://github.com/androidx/androidx"),
         LibraryLink("ConstraintLayout", "https://github.com/androidx/constraintlayout"),
         LibraryLink("Jetpack Compose", "https://github.com/androidx/androidx"),
@@ -258,29 +295,14 @@ private fun SettingsScreen() {
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(bottom = 8.dp),
         )
-        languageOptions.forEach { option ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable {
-                        AppCompatDelegate.setApplicationLocales(
-                            LocaleListCompat.forLanguageTags(option.tag)
-                        )
-                    }
-                    .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                RadioButton(
-                    selected = currentTag == option.tag,
-                    onClick = {
-                        AppCompatDelegate.setApplicationLocales(
-                            LocaleListCompat.forLanguageTags(option.tag)
-                        )
-                    }
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(text = option.label)
-            }
+        Button(
+            onClick = {
+                selectedLanguageTag = currentTag ?: "en"
+                showLanguageDialog = true
+            },
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            Text(text = "Click to switch language")
         }
 
         Spacer(modifier = Modifier.size(24.dp))
@@ -325,6 +347,51 @@ private fun SettingsScreen() {
             )
         }
     }
+
+    if (showLanguageDialog) {
+        AlertDialog(
+            onDismissRequest = { showLanguageDialog = false },
+            title = { Text(text = "Select language") },
+            text = {
+                Column {
+                    languageOptions.forEach { option ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { selectedLanguageTag = option.tag }
+                                .padding(vertical = 10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            androidx.compose.material3.RadioButton(
+                                selected = selectedLanguageTag == option.tag,
+                                onClick = { selectedLanguageTag = option.tag },
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(text = option.label)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        prefs.edit().putString(PREF_KEY_LANGUAGE_TAG, selectedLanguageTag).apply()
+                        AppCompatDelegate.setApplicationLocales(
+                            LocaleListCompat.forLanguageTags(selectedLanguageTag)
+                        )
+                        showLanguageDialog = false
+                    }
+                ) {
+                    Text(text = "OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showLanguageDialog = false }) {
+                    Text(text = "Cancel")
+                }
+            }
+        )
+    }
 }
 
 private data class LanguageOption(
@@ -336,3 +403,6 @@ private data class LibraryLink(
     val name: String,
     val url: String,
 )
+
+private const val PREFS_NAME = "app_settings"
+private const val PREF_KEY_LANGUAGE_TAG = "language_tag"

@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">医院候诊</string>
+    <string name="tab_hospitals">医院</string>
+    <string name="tab_settings">设置</string>
+</resources>
