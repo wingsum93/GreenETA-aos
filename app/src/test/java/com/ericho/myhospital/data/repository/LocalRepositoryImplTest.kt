@@ -24,13 +24,13 @@ class LocalRepositoryImplTest {
     fun `loadHospitalWaitTimes returns hospitals when payload is valid`() = runTest(testDispatcher) {
         val localDataSource = mockk<LocalDataSource>()
         coEvery { localDataSource.readHospitalGeoJson() } returns sampleGeoJson(
-            jsonEnUrl = "https://example.com/hospital.json",
-            jsonTcUrl = "",
-            jsonScUrl = "",
+            jsonEnUrl = "https://www.ha.org.hk/aedwt/index.html?Lang=chien&AEHospital=PYN",
+            jsonTcUrl = "https://www.ha.org.hk/aedwt/index.html?Lang=chien&AEHospital=PYN",
+            jsonScUrl = "https://www.ha.org.hk/aedwt/index.html?Lang=chien&AEHospital=PYN",
         )
         val httpClient = buildHttpClient { request ->
             when (request.url.toString()) {
-                "https://example.com/hospital.json" -> respond(
+                "https://www.ha.org.hk/aedwt/index.html?Lang=chien&AEHospital=PYN" -> respond(
                     content = sampleWaitTimeJson(),
                     status = HttpStatusCode.OK,
                     headers = headersOf("Content-Type", "application/json"),
@@ -47,8 +47,8 @@ class LocalRepositoryImplTest {
         val result = repository.loadHospitalWaitTimes("en")
 
         assertEquals(1, result.hospitals.size)
-        assertEquals("Test Hospital", result.hospitals.first().name)
-        assertEquals("2024-01-01", result.updatedTime)
+        assertEquals("Pamela Youde Nethersole Eastern Hospital", result.hospitals.first().name)
+        assertEquals("29/1/2026 3:15AM", result.updatedTime)
     }
 
     @Test
@@ -88,7 +88,7 @@ class LocalRepositoryImplTest {
               "features": [
                 {
                   "properties": {
-                    "hospName_EN": "Test Hospital",
+                    "hospName_EN": "Pamela Youde Nethersole Eastern Hospital",
                     "hospName_TC": "測試醫院",
                     "hospName_SC": "测试医院",
                     "LATITUDE": 0,
@@ -105,18 +105,18 @@ class LocalRepositoryImplTest {
 
     private fun sampleWaitTimeJson(): String {
         return """
-            {
-              "hospName": "Test Hospital",
-              "t1wt": "10",
-              "manageT1case": "Y",
-              "t2wt": "20",
-              "manageT2case": "Y",
-              "t3p50": "30",
-              "t3p95": "50",
-              "t45p50": "15",
-              "t45p95": "25",
-              "updateTime": "2024-01-01"
-            }
+{
+  "hospName": "Pamela Youde Nethersole Eastern Hospital",
+  "t1wt": "0 minute",
+  "manageT1case": "N",
+  "t2wt": "less than 15 minutes",
+  "manageT2case": "N",
+  "t3p50": "29 minutes",
+  "t3p95": "60 minutes",
+  "t45p50": "4.5 hours",
+  "t45p95": "6 hours",
+  "updateTime": "29/1/2026 3:15AM"
+}
         """.trimIndent()
     }
 }
