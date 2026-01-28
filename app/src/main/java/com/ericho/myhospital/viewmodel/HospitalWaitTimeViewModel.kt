@@ -5,7 +5,6 @@ import androidx.lifecycle.viewModelScope
 import com.ericho.myhospital.data.repository.LocalRepository
 import com.ericho.myhospital.model.HospitalPayload
 import com.ericho.myhospital.model.HospitalWaitTime
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -60,7 +59,7 @@ class HospitalWaitTimeViewModel(
 
     private fun fetchHospitalWaitTimes(languageTag: String) {
         _uiState.value = reduce(_uiState.value, HospitalWaitTimeResult.Loading)
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             val result = runCatching { localRepository.loadHospitalWaitTimes(languageTag) }
             val outcome = result.fold(
                 onSuccess = { payload -> HospitalWaitTimeResult.Success(payload) },
