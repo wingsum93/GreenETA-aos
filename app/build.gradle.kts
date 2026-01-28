@@ -67,6 +67,7 @@ dependencies {
     ksp(libs.androidx.room.compiler)
 //    implementation(libs.koin.androidx.viewmodel)
     testImplementation(libs.junit)
+    testImplementation(libs.kotlin.test)
     testImplementation(libs.coroutines.test)
     testImplementation(libs.ktor.client.mock)
     testImplementation(libs.mockk)
