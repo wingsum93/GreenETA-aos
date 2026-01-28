@@ -6,6 +6,7 @@ import com.ericho.myhospital.data.repository.LocalRepositoryImpl
 import com.ericho.myhospital.data.source.local.LocalDataSource
 import com.ericho.myhospital.data.source.remote.HttpClientProvider
 import com.ericho.myhospital.viewmodel.HospitalWaitTimeViewModel
+import kotlinx.coroutines.Dispatchers
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
@@ -30,11 +31,11 @@ class MyHospitalApplication : Application() {
 
 private val appModule = module {
     single { LocalDataSource(androidContext()) }
-    single<LocalRepository> { LocalRepositoryImpl(get()) }
+    single<LocalRepository> { LocalRepositoryImpl(get(), get(), Dispatchers.IO) }
     single {
         HttpClientProvider.create()
     } onClose {
         it?.close()
     }
-    viewModel { HospitalWaitTimeViewModel(get(), get()) }
+    viewModel { HospitalWaitTimeViewModel(get()) }
 }

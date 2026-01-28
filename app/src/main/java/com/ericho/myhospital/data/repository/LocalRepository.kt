@@ -1,11 +1,7 @@
 package com.ericho.myhospital.data.repository
 
-import com.ericho.myhospital.data.dto.HospitalGeoJsonEntryDto
+import com.ericho.myhospital.model.HospitalPayload
 
 interface LocalRepository {
-    suspend fun loadHospitalWaitTimeJson(): String?
-
-    suspend fun cacheHospitalWaitTimeJson(json: String)
-
-    suspend fun loadHospitalGeoJsonDtos(): List<HospitalGeoJsonEntryDto>
+    suspend fun loadHospitalWaitTimes(languageTag: String): HospitalPayload
 }
