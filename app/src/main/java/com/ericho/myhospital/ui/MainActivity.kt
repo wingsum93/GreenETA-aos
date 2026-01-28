@@ -35,6 +35,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -58,8 +59,10 @@ import com.ericho.myhospital.viewmodel.HospitalWaitTimeViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     private val viewModel: HospitalWaitTimeViewModel by viewModel()
@@ -69,6 +72,23 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+            val configuration = LocalConfiguration.current
+            val languageTag = remember(configuration) {
+                val locale = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    configuration.locales.get(0)
+                } else {
+                    @Suppress("DEPRECATION")
+                    configuration.locale
+                } ?: Locale.ENGLISH
+                when (locale.toLanguageTag()) {
+                    "zh-Hant" -> "zh-TW"
+                    "zh-Hans" -> "zh-CN"
+                    else -> locale.toLanguageTag()
+                }
+            }
+            LaunchedEffect(languageTag) {
+                viewModel.loadHospitalWaitTimes(languageTag)
+            }
             MainTabs(uiState = uiState)
         }
     }
