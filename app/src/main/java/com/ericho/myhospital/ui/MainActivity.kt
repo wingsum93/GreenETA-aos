@@ -54,6 +54,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ericho.myhospital.R
 import com.ericho.myhospital.model.HospitalWaitTime
+import com.ericho.myhospital.viewmodel.HospitalWaitTimeIntent
 import com.ericho.myhospital.viewmodel.HospitalWaitTimeUiState
 import com.ericho.myhospital.viewmodel.HospitalWaitTimeViewModel
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -87,7 +88,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
             LaunchedEffect(languageTag) {
-                viewModel.loadHospitalWaitTimes(languageTag)
+                viewModel.accept(HospitalWaitTimeIntent.Load(languageTag))
             }
             MainTabs(uiState = uiState)
         }
