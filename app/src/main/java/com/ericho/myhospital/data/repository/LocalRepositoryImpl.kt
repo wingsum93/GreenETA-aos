@@ -1,7 +1,8 @@
 package com.ericho.myhospital.data.repository
 
 import com.ericho.myhospital.data.dto.HospitalGeoJsonEntryDto
-import com.ericho.myhospital.data.dto.HospitalWaitTimeResponseDto
+import com.ericho.myhospital.data.dto.HospitalWaitTimeDto
+import com.ericho.myhospital.data.dto.HospitalWaitTimePayloadDto
 import com.ericho.myhospital.data.source.local.LocalDataSource
 import com.ericho.myhospital.model.HospitalPayload
 import com.ericho.myhospital.model.HospitalWaitTime
@@ -9,9 +10,8 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.async
-import kotlinx.coroutines.supervisorScope
 import kotlinx.coroutines.withContext
+import org.json.JSONArray
 import org.json.JSONObject
 
 class LocalRepositoryImpl(
@@ -21,27 +21,20 @@ class LocalRepositoryImpl(
 ) : LocalRepository {
     override suspend fun loadHospitalWaitTimes(languageTag: String): HospitalPayload = withContext(ioDispatcher) {
         val hospitalEntries = loadHospitalGeoJsonDtos()
+        val nameLookup = buildHospitalNameLookup(hospitalEntries)
         val language = resolveLanguage(languageTag)
-        val waitTimeResponses = supervisorScope {
-            hospitalEntries.map { entry ->
-                async {
-                    runCatching {
-                        val url = entry.urlFor(language)
-                        if (url.isBlank()) {
-                            return@runCatching null
-                        }
-                        val jsonText = httpClient.get(url).bodyAsText()
-                        parseWaitTime(jsonText)
-                    }.getOrNull()
-                }
-            }.map { it.await() }
+        val jsonText = runCatching { httpClient.get(WAIT_TIME_URL).bodyAsText() }.getOrDefault("")
+        if (jsonText.isBlank()) {
+            return@withContext HospitalPayload(null, emptyList())
         }
-        val hospitals = waitTimeResponses
-            .filterNotNull()
-            .map { it.toModel() }
-        val updatedTime = waitTimeResponses
-            .firstOrNull { !it?.updateTime.isNullOrBlank() }
-            ?.updateTime
+        val payload = runCatching { parseWaitTimePayload(jsonText) }
+            .getOrElse { return@withContext HospitalPayload(null, emptyList()) }
+        val hospitals = payload.waitTime.map { dto ->
+            val entry = nameLookup[dto.hospName]
+            val displayName = entry?.nameFor(language)?.takeUnless { it.isBlank() } ?: dto.hospName
+            dto.toModel(displayName)
+        }
+        val updatedTime = payload.updateTime.trim().ifEmpty { null }
         HospitalPayload(updatedTime, hospitals)
     }
 
@@ -69,25 +62,46 @@ class LocalRepositoryImpl(
         return hospitals
     }
 
-    private fun parseWaitTime(jsonText: String): HospitalWaitTimeResponseDto {
+    private fun parseWaitTimePayload(jsonText: String): HospitalWaitTimePayloadDto {
         val root = JSONObject(jsonText)
-        return HospitalWaitTimeResponseDto(
-            hospName = root.optString("hospName"),
-            t1wt = root.optString("t1wt"),
-            manageT1case = root.optString("manageT1case"),
-            t2wt = root.optString("t2wt"),
-            manageT2case = root.optString("manageT2case"),
-            t3p50 = root.optString("t3p50"),
-            t3p95 = root.optString("t3p95"),
-            t45p50 = root.optString("t45p50"),
-            t45p95 = root.optString("t45p95"),
+        val waitTimeArray = root.optJSONArray("waitTime")
+        val waitTime = if (waitTimeArray == null) {
+            listOf(parseWaitTimeEntry(root))
+        } else {
+            parseWaitTimeEntries(waitTimeArray)
+        }
+        return HospitalWaitTimePayloadDto(
             updateTime = root.optString("updateTime"),
+            waitTime = waitTime.filter { it.hospName.isNotBlank() },
         )
     }
 
-    private fun HospitalWaitTimeResponseDto.toModel(): HospitalWaitTime {
+    private fun parseWaitTimeEntries(waitTimeArray: JSONArray): List<HospitalWaitTimeDto> {
+        val entries = ArrayList<HospitalWaitTimeDto>(waitTimeArray.length())
+        for (index in 0 until waitTimeArray.length()) {
+            val item = waitTimeArray.optJSONObject(index) ?: continue
+            entries.add(parseWaitTimeEntry(item))
+        }
+        return entries
+    }
+
+    private fun parseWaitTimeEntry(item: JSONObject): HospitalWaitTimeDto {
+        return HospitalWaitTimeDto(
+            hospName = item.optString("hospName"),
+            t1wt = item.optString("t1wt"),
+            manageT1case = item.optString("manageT1case"),
+            t2wt = item.optString("t2wt"),
+            manageT2case = item.optString("manageT2case"),
+            t3p50 = item.optString("t3p50"),
+            t3p95 = item.optString("t3p95"),
+            t45p50 = item.optString("t45p50"),
+            t45p95 = item.optString("t45p95"),
+        )
+    }
+
+    private fun HospitalWaitTimeDto.toModel(displayName: String): HospitalWaitTime {
         return HospitalWaitTime(
-            name = hospName,
+            name = displayName,
             t1wt = t1wt,
             manageT1case = manageT1case,
             t2wt = t2wt,
@@ -97,6 +111,22 @@ class LocalRepositoryImpl(
             t45p50 = t45p50,
             t45p95 = t45p95,
         )
+    }
+
+    private fun buildHospitalNameLookup(entries: List<HospitalGeoJsonEntryDto>): Map<String, HospitalGeoJsonEntryDto> {
+        val lookup = HashMap<String, HospitalGeoJsonEntryDto>(entries.size * 3)
+        entries.forEach { entry ->
+            if (entry.nameEn.isNotBlank()) {
+                lookup[entry.nameEn] = entry
+            }
+            if (entry.nameTc.isNotBlank()) {
+                lookup[entry.nameTc] = entry
+            }
+            if (entry.nameSc.isNotBlank()) {
+                lookup[entry.nameSc] = entry
+            }
+        }
+        return lookup
     }
 
     private enum class HospitalLanguage {
@@ -114,11 +144,15 @@ class LocalRepositoryImpl(
         }
     }
 
-    private fun HospitalGeoJsonEntryDto.urlFor(language: HospitalLanguage): String {
+    private fun HospitalGeoJsonEntryDto.nameFor(language: HospitalLanguage): String {
         return when (language) {
-            HospitalLanguage.EN -> jsonEnUrl
-            HospitalLanguage.TC -> jsonTcUrl
-            HospitalLanguage.SC -> jsonScUrl
+            HospitalLanguage.EN -> nameEn
+            HospitalLanguage.TC -> nameTc
+            HospitalLanguage.SC -> nameSc
         }
+    }
+
+    private companion object {
+        private const val WAIT_TIME_URL = "https://www.ha.org.hk/aedwt/data/aedWtData2.json"
     }
 }

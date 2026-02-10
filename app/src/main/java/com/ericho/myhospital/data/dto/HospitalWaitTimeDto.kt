@@ -1,6 +1,6 @@
 package com.ericho.myhospital.data.dto
 
-data class HospitalWaitTimeResponseDto(
+data class HospitalWaitTimeDto(
     val hospName: String,
     val t1wt: String,
     val manageT1case: String,
@@ -10,5 +10,9 @@ data class HospitalWaitTimeResponseDto(
     val t3p95: String,
     val t45p50: String,
     val t45p95: String,
+)
+
+data class HospitalWaitTimePayloadDto(
     val updateTime: String,
+    val waitTime: List<HospitalWaitTimeDto>,
 )

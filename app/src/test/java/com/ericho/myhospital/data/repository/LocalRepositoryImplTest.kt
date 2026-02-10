@@ -19,6 +19,7 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class LocalRepositoryImplTest {
     private val testDispatcher = StandardTestDispatcher()
+    private val waitTimeUrl = "https://www.ha.org.hk/aedwt/data/aedWtData2.json"
 
     @Test
     fun `loadHospitalWaitTimes returns hospitals when payload is valid`() = runTest(testDispatcher) {
@@ -30,7 +31,7 @@ class LocalRepositoryImplTest {
         )
         val httpClient = buildHttpClient { request ->
             when (request.url.toString()) {
-                "https://www.ha.org.hk/aedwt/index.html?Lang=chien&AEHospital=PYN" -> respond(
+                waitTimeUrl -> respond(
                     content = sampleWaitTimeJson(),
                     status = HttpStatusCode.OK,
                     headers = headersOf("Content-Type", "application/json"),
@@ -52,7 +53,7 @@ class LocalRepositoryImplTest {
     }
 
     @Test
-    fun `loadHospitalWaitTimes returns empty list when url is blank`() = runTest(testDispatcher) {
+    fun `loadHospitalWaitTimes returns empty list when payload is blank`() = runTest(testDispatcher) {
         val localDataSource = mockk<LocalDataSource>()
         coEvery { localDataSource.readHospitalGeoJson() } returns sampleGeoJson(
             jsonEnUrl = "",
@@ -106,15 +107,19 @@ class LocalRepositoryImplTest {
     private fun sampleWaitTimeJson(): String {
         return """
 {
-  "hospName": "Pamela Youde Nethersole Eastern Hospital",
-  "t1wt": "0 minute",
-  "manageT1case": "N",
-  "t2wt": "less than 15 minutes",
-  "manageT2case": "N",
-  "t3p50": "29 minutes",
-  "t3p95": "60 minutes",
-  "t45p50": "4.5 hours",
-  "t45p95": "6 hours",
+  "waitTime": [
+    {
+      "hospName": "Pamela Youde Nethersole Eastern Hospital",
+      "t1wt": "0 minute",
+      "manageT1case": "N",
+      "t2wt": "less than 15 minutes",
+      "manageT2case": "N",
+      "t3p50": "29 minutes",
+      "t3p95": "60 minutes",
+      "t45p50": "4.5 hours",
+      "t45p95": "6 hours"
+    }
+  ],
   "updateTime": "29/1/2026 3:15AM"
 }
         """.trimIndent()
